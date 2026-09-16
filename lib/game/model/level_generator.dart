@@ -30,14 +30,30 @@ class LevelGenerator {
   /// layouts (see [_targetEdgeCount]) rather than an unreadable pin count.
   static int nodeCountFor(int level) {
     if (level <= 1) return _minNodes;
-    final t = (level - 1) / _rampLevels;
-    final n = _minNodes + (t * (_maxNodes - _minNodes)).floor();
+    final t = ((level - 1) / _rampLevels).clamp(0.0, 1.0);
+    final n = _minNodes + (t * (_maxNodes - _minNodes)).round();
     return n.clamp(_minNodes, _maxNodes);
   }
 
   static const int _minNodes = 4;
   static const int _maxNodes = 22;
-  static const int _rampLevels = 600;
+  static const int _rampLevels = 500;
+
+  /// How many pins start away from their solved spot.
+  ///
+  /// This is the real early-game difficulty dial. Level 1 displaces a single
+  /// pin — the board is already almost solved and the player just tucks one
+  /// pin into place — and it grows by one pin every few levels until the whole
+  /// board is scrambled. Higher pin-count boards therefore also get a longer,
+  /// gentler on-ramp before they become a full tangle.
+  static int displacedCountFor(int level, int nodeCount) {
+    if (nodeCount <= 1) return nodeCount;
+    final displaced = 1 + ((level - 1) ~/ _displaceStep);
+    return displaced.clamp(1, nodeCount);
+  }
+
+  /// Add one more displaced pin every this many levels.
+  static const int _displaceStep = 3;
 
   /// Build the puzzle for [level] (1-based).
   Level generate(int level) {
@@ -54,7 +70,7 @@ class LevelGenerator {
       'level $level: the "solved" layout somehow has crossings',
     );
 
-    final start = _scramble(rng, solved, edges);
+    final start = _scramble(rng, solved, edges, level);
 
     return Level(
       index: level,
@@ -165,29 +181,79 @@ class LevelGenerator {
   int _targetEdgeCount(int n, int level) {
     final spanning = n - 1;
     final maxPlanar = (3 * n - 6) < spanning ? spanning : (3 * n - 6);
-    final progress = (level / 1000.0).clamp(0.0, 1.0);
-    final extra = ((maxPlanar - spanning) * (0.30 + 0.50 * progress)).round();
+    if (maxPlanar <= spanning) return spanning;
+
+    final progress = ((level - 1) / 1000.0).clamp(0.0, 1.0);
+    // Sparser early (fewer ropes, fewer possible crossings), denser late.
+    final density = 0.20 + 0.65 * progress;
+    // Always at least one chord beyond the spanning tree, so two non-adjacent
+    // ropes always exist and the board can actually be tangled.
+    final rawExtra = ((maxPlanar - spanning) * density).round();
+    final extra = rawExtra < 1 ? 1 : rawExtra;
     final target = spanning + extra;
     return target.clamp(spanning, maxPlanar);
   }
 
-  /// Random start positions for the pins, retried until the layout actually
-  /// has a crossing — otherwise it would open already solved, which is not a
-  /// puzzle. The fallback only triggers for a level with too few ropes to ever
-  /// cross, which for n >= 4 does not happen in practice.
-  List<Vec2> _scramble(Random rng, List<Vec2> solved, List<Edge> edges) {
-    const margin = 0.08;
-    for (var attempt = 0; attempt < 200; attempt++) {
-      final s = List<Vec2>.generate(
-        solved.length,
-        (_) => Vec2(
-          margin + rng.nextDouble() * (1 - 2 * margin),
-          margin + rng.nextDouble() * (1 - 2 * margin),
-        ),
-      );
-      if (countCrossings(s, edges) > 0) return s;
+  /// Build the tangled start by displacing only some pins from [solved].
+  ///
+  /// The number of pins moved is [displacedCountFor], and we move the
+  /// highest-degree pins first: they carry the most ropes, so moving them
+  /// reliably creates a crossing and gives the player the most meaningful pins
+  /// to fix. Every other pin stays exactly where it belongs, which is what
+  /// makes the early levels read as "nearly solved".
+  ///
+  /// Positions of the moved pins are retried until the layout actually has a
+  /// crossing (an untangled start is not a puzzle); if a given displacement
+  /// somehow can't produce one, we move one more pin, and finally fall back to
+  /// the reversed layout. For n >= 4 with at least one chord this never has to.
+  List<Vec2> _scramble(
+    Random rng,
+    List<Vec2> solved,
+    List<Edge> edges,
+    int level,
+  ) {
+    final n = solved.length;
+    final want = displacedCountFor(level, n);
+    final byDegree = _pinsByDegreeDesc(n, edges);
+
+    for (var disp = want; disp <= n; disp++) {
+      final moving = byDegree.take(disp).toSet();
+      for (var attempt = 0; attempt < 300; attempt++) {
+        final s = <Vec2>[
+          for (var i = 0; i < n; i++)
+            if (moving.contains(i))
+              _randPoint(rng)
+            else
+              Vec2(solved[i].x, solved[i].y),
+        ];
+        if (countCrossings(s, edges) > 0) return s;
+      }
     }
     return List<Vec2>.from(solved.reversed);
+  }
+
+  /// Pin indices ordered by descending degree, ties broken by index, so the
+  /// choice of which pins to displace is deterministic.
+  List<int> _pinsByDegreeDesc(int n, List<Edge> edges) {
+    final degree = List<int>.filled(n, 0);
+    for (final e in edges) {
+      degree[e.a]++;
+      degree[e.b]++;
+    }
+    final order = List<int>.generate(n, (i) => i);
+    order.sort((i, j) {
+      final byDeg = degree[j].compareTo(degree[i]);
+      return byDeg != 0 ? byDeg : i.compareTo(j);
+    });
+    return order;
+  }
+
+  Vec2 _randPoint(Random rng) {
+    const margin = 0.08;
+    return Vec2(
+      margin + rng.nextDouble() * (1 - 2 * margin),
+      margin + rng.nextDouble() * (1 - 2 * margin),
+    );
   }
 }
 

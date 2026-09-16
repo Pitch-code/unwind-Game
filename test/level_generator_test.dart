@@ -66,4 +66,54 @@ void main() {
       previous = count;
     }
   });
+
+  group('displaced-pin ramp', () {
+    test('level 1 displaces a single pin', () {
+      expect(LevelGenerator.displacedCountFor(1, 10), 1);
+    });
+
+    test('grows monotonically and eventually scrambles the whole board', () {
+      for (final nodeCount in [4, 10, 22]) {
+        var previous = 0;
+        for (var lvl = 1; lvl <= 1000; lvl++) {
+          final d = LevelGenerator.displacedCountFor(lvl, nodeCount);
+          expect(d, inInclusiveRange(1, nodeCount));
+          expect(d, greaterThanOrEqualTo(previous)); // never decreases
+          previous = d;
+        }
+        expect(previous, nodeCount); // the whole board is scrambled by the end
+      }
+    });
+  });
+
+  test('early levels open nearly solved — only a few pins are displaced', () {
+    for (var n = 1; n <= 12; n++) {
+      final level = gen.generate(n);
+      final want = LevelGenerator.displacedCountFor(n, level.nodeCount);
+
+      var displaced = 0;
+      for (var i = 0; i < level.nodeCount; i++) {
+        if (level.start[i] != level.solved[i]) displaced++;
+      }
+
+      // Every pin except the intended few sits exactly on its solved spot.
+      expect(
+        displaced,
+        lessThanOrEqualTo(want),
+        reason: 'level $n moved $displaced pins, expected at most $want',
+      );
+      // ...but it is still a puzzle.
+      expect(displaced, greaterThan(0));
+    }
+  });
+
+  test('rope count never exceeds the planar maximum', () {
+    for (final n in sample) {
+      final level = gen.generate(n);
+      final nodes = level.nodeCount;
+      final maxPlanar = (3 * nodes - 6) < (nodes - 1) ? (nodes - 1) : 3 * nodes - 6;
+      expect(level.edges.length, lessThanOrEqualTo(maxPlanar));
+      expect(level.edges.length, greaterThanOrEqualTo(1));
+    }
+  });
 }
