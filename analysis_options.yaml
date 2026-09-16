@@ -1,0 +1,7 @@
+include: package:flutter_lints/flutter.yaml
+
+# Keep the analyzer strict; CI runs `flutter analyze` and fails on any issue.
+analyzer:
+  language:
+    strict-casts: true
+    strict-raw-types: true
