@@ -29,6 +29,14 @@ jobs:
     # Only build the app if it compiles clean and the logic passes.
     needs: verify
     runs-on: ubuntu-latest
+    env:
+      # Real AdMob ids. These are NOT secrets — they ship inside every APK and
+      # are visible to anyone. The debug build below still shows Google's TEST
+      # ads (it passes no ADMOB_INTERSTITIAL_ID, so the app falls back to the
+      # test ad unit); only the release build wires the real ad unit. This is
+      # what keeps playtesting safe from self-click account bans.
+      ADMOB_APP_ID: "ca-app-pub-2526578065051760~7160117289"
+      ADMOB_INTERSTITIAL_ID: "ca-app-pub-2526578065051760/1072211921"
     steps:
       - uses: actions/checkout@v4
 
@@ -61,12 +69,12 @@ jobs:
           path: build/app/outputs/flutter-apk/app-debug.apk
           if-no-files-found: error
 
-      # Verify the release path bundles too. Flutter's template points the
-      # release build at the debug signing config, so this produces a
-      # debug-signed .aab — enough to prove the release build compiles and
-      # shrinks. A real Play upload needs proper signing + real ids (see
-      # docs/RELEASE.md); it is intentionally not signed for release here.
-      - run: flutter build appbundle --release
+      # Verify the release path bundles too, wired with the REAL interstitial
+      # unit. Flutter's template points the release build at the debug signing
+      # config, so this produces a debug-signed .aab — enough to prove the real
+      # ad config compiles and shrinks. A real Play upload still needs proper
+      # release signing (see docs/RELEASE.md); it is not signed for release here.
+      - run: flutter build appbundle --release --dart-define=ADMOB_INTERSTITIAL_ID=$ADMOB_INTERSTITIAL_ID
 
       - uses: actions/upload-artifact@v4
         with:
