@@ -26,7 +26,7 @@ MANIFEST = "android/app/src/main/AndroidManifest.xml"
 # but google_mobile_ads' Android build script still uses the eager
 # `configurations.all` API that Gradle 9 removed, so the build fails. Pin the
 # whole Android toolchain to a known-good pair that builds the plugin cleanly.
-GRADLE_VERSION = "8.12"
+GRADLE_VERSION = "8.14.3"
 AGP_VERSION = "8.7.3"
 
 
