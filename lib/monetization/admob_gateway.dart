@@ -34,7 +34,7 @@ class AdMobGateway implements AdGateway {
     _loading = true;
     await InterstitialAd.load(
       adUnitId: _interstitialUnitId,
-      request: AdRequest(),
+      request: const AdRequest(),
       adLoadCallback: InterstitialAdLoadCallback(
         onAdLoaded: (ad) {
           _ad = ad;
