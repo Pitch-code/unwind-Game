@@ -122,15 +122,27 @@ class _GameScreenState extends State<GameScreen> {
               left: 20,
               right: 20,
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text('Level $_level', style: _hud),
+                  const Spacer(),
                   Text(
                     _crossings == 0
                         ? 'untangled'
                         : '$_crossings crossing${_crossings == 1 ? '' : 's'}',
                     style: _hud,
                   ),
+                  if (widget.onOpenGarden != null) ...[
+                    const SizedBox(width: 14),
+                    GestureDetector(
+                      onTap: widget.onOpenGarden,
+                      behavior: HitTestBehavior.opaque,
+                      child: const Icon(
+                        Icons.local_florist,
+                        color: Color(0xFF8FE0C0),
+                        size: 22,
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),

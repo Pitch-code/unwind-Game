@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'game/game_screen.dart';
 import 'garden/garden_controller.dart';
+import 'garden/garden_screen.dart';
 import 'monetization/admob_gateway.dart';
 import 'monetization/billing.dart';
 
@@ -64,6 +65,11 @@ class UnwindApp extends StatelessWidget {
             onRestore: billing.restore,
             garden: garden.state,
             onLevelSolved: garden.recordSolved,
+            onOpenGarden: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => GardenScreen(garden: garden, billing: billing),
+              ),
+            ),
           );
         },
       ),
