@@ -12,3 +12,9 @@ build/
 
 # OS
 .DS_Store
+
+
+# Android signing secrets — never commit these
+**/key.properties
+*.jks
+*.keystore

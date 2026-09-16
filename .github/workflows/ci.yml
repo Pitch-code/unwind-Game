@@ -54,3 +54,16 @@ jobs:
           name: unwind-debug-apk
           path: build/app/outputs/flutter-apk/app-debug.apk
           if-no-files-found: error
+
+      # Verify the release path bundles too. Flutter's template points the
+      # release build at the debug signing config, so this produces a
+      # debug-signed .aab — enough to prove the release build compiles and
+      # shrinks. A real Play upload needs proper signing + real ids (see
+      # docs/RELEASE.md); it is intentionally not signed for release here.
+      - run: flutter build appbundle --release
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: unwind-release-aab-unsigned
+          path: build/app/outputs/bundle/release/app-release.aab
+          if-no-files-found: error

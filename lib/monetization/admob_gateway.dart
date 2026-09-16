@@ -16,9 +16,13 @@ import 'ad_gateway.dart';
 class AdMobGateway implements AdGateway {
   AdMobGateway();
 
-  // Google's official Android test interstitial unit id.
-  static const String _interstitialUnitId =
-      'ca-app-pub-3940256099942544/1033173712';
+  // The interstitial ad unit id. Defaults to Google's official Android **test**
+  // unit so debug builds never touch a live ad; a release build overrides it
+  // with `--dart-define=ADMOB_INTERSTITIAL_ID=ca-app-pub-.../...`.
+  static const String _interstitialUnitId = String.fromEnvironment(
+    'ADMOB_INTERSTITIAL_ID',
+    defaultValue: 'ca-app-pub-3940256099942544/1033173712',
+  );
 
   InterstitialAd? _ad;
   bool _loading = false;

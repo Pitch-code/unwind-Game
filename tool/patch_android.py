@@ -6,19 +6,29 @@ can't be hand-authored), so CI regenerates it with `flutter create` on every
 run. This script re-applies the two customisations google_mobile_ads needs,
 idempotently:
 
-  1. The AdMob application id, as <meta-data> in AndroidManifest.xml.
-     During development this is Google's official *test* app id.
-  2. minSdk 23 — google_mobile_ads 5.x refuses to build below it.
+  1. The app's launcher display name.
+  2. The AdMob application id, as <meta-data> in AndroidManifest.xml.
+     Defaults to Google's official *test* app id; a release build sets the
+     ADMOB_APP_ID environment variable to override it.
+  3. minSdk 23 — google_mobile_ads 5.x refuses to build below it.
+  4. A pinned Gradle + AGP toolchain (see below).
 
 Run after `flutter create`, before `flutter build apk`.
 """
 
 import glob
+import os
 import re
 import sys
 
-# Google's official Android **test** AdMob application id.
-ADMOB_APP_ID = "ca-app-pub-3940256099942544~3347511713"
+# The AdMob application id injected into the manifest. Defaults to Google's
+# official **test** app id; a release build overrides it by setting the
+# ADMOB_APP_ID environment variable before running this script.
+TEST_ADMOB_APP_ID = "ca-app-pub-3940256099942544~3347511713"
+ADMOB_APP_ID = os.environ.get("ADMOB_APP_ID", TEST_ADMOB_APP_ID)
+
+# The app's display name under the launcher icon.
+APP_LABEL = "Unwind"
 
 MANIFEST = "android/app/src/main/AndroidManifest.xml"
 
@@ -34,22 +44,29 @@ def patch_manifest() -> None:
     with open(MANIFEST, encoding="utf-8") as f:
         xml = f.read()
 
-    if "com.google.android.gms.ads.APPLICATION_ID" in xml:
-        print("Manifest already has AdMob app id; skipping.")
-        return
-
-    meta = (
-        "        <meta-data\n"
-        '            android:name="com.google.android.gms.ads.APPLICATION_ID"\n'
-        f'            android:value="{ADMOB_APP_ID}"/>\n'
+    # Set the launcher display name (flutter create uses the project name).
+    new_xml, n = re.subn(
+        r'android:label="[^"]*"', f'android:label="{APP_LABEL}"', xml, count=1
     )
-    if "</application>" not in xml:
-        sys.exit(f"error: no </application> tag found in {MANIFEST}")
+    if n:
+        xml = new_xml
+        print(f'Set app label -> "{APP_LABEL}".')
 
-    xml = xml.replace("</application>", meta + "    </application>", 1)
+    if "com.google.android.gms.ads.APPLICATION_ID" not in xml:
+        meta = (
+            "        <meta-data\n"
+            '            android:name="com.google.android.gms.ads.APPLICATION_ID"\n'
+            f'            android:value="{ADMOB_APP_ID}"/>\n'
+        )
+        if "</application>" not in xml:
+            sys.exit(f"error: no </application> tag found in {MANIFEST}")
+        xml = xml.replace("</application>", meta + "    </application>", 1)
+        print(f"Patched {MANIFEST} with AdMob app id.")
+    else:
+        print("Manifest already has AdMob app id; skipping.")
+
     with open(MANIFEST, "w", encoding="utf-8") as f:
         f.write(xml)
-    print(f"Patched {MANIFEST} with AdMob app id.")
 
 
 def patch_min_sdk() -> None:

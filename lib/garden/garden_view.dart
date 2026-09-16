@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 
 import 'garden.dart';
@@ -67,9 +69,18 @@ class _GardenPainter extends CustomPainter {
     final stemHeight = s * (0.15 + 0.85 * g); // always at least a small sprout
     final top = Offset(base.dx, base.dy - stemHeight);
 
-    canvas.drawLine(
-      base,
-      top,
+    // A gently curved stem reads softer than a straight stick.
+    final bend = s * 0.06;
+    final stem = Path()
+      ..moveTo(base.dx, base.dy)
+      ..quadraticBezierTo(
+        base.dx + bend,
+        base.dy - stemHeight * 0.55,
+        top.dx,
+        top.dy,
+      );
+    canvas.drawPath(
+      stem,
       Paint()
         ..color = theme.stem
         ..strokeWidth = _clampD(s * 0.045, 2, 9)
@@ -78,33 +89,54 @@ class _GardenPainter extends CustomPainter {
     );
 
     if (g > 0.25) {
-      final leaf = Paint()..color = theme.leaf;
-      final midY = base.dy - stemHeight * 0.5;
-      final leafR = s * 0.10;
-      canvas.drawOval(
-        Rect.fromCenter(
-          center: Offset(base.dx - leafR, midY),
-          width: leafR * 2,
-          height: leafR,
-        ),
-        leaf,
-      );
-      canvas.drawOval(
-        Rect.fromCenter(
-          center: Offset(base.dx + leafR, midY),
-          width: leafR * 2,
-          height: leafR,
-        ),
-        leaf,
-      );
+      final leafPaint = Paint()..color = theme.leaf;
+      final leafOrigin = Offset(base.dx + bend * 0.6, base.dy - stemHeight * 0.45);
+      _drawLeaf(canvas, leafOrigin, s * 0.22, -1, leafPaint);
+      _drawLeaf(canvas, leafOrigin, s * 0.22, 1, leafPaint);
     }
 
     if (g >= 0.6) {
-      final openness = _clampD((g - 0.6) / 0.4, 0.4, 1);
-      canvas.drawCircle(top, s * 0.13 * openness, Paint()..color = theme.bloom);
+      final openness = _clampD((g - 0.6) / 0.4, 0.35, 1);
+      _drawBloom(canvas, top, s * 0.14 * openness);
     } else {
-      canvas.drawCircle(top, s * 0.045, Paint()..color = theme.leaf);
+      canvas.drawCircle(top, s * 0.05, Paint()..color = theme.leaf);
     }
+  }
+
+  /// A single leaf sweeping out from [origin] toward [dir] (-1 left, +1 right).
+  void _drawLeaf(Canvas canvas, Offset origin, double len, int dir, Paint paint) {
+    final tip = Offset(origin.dx + dir * len, origin.dy - len * 0.5);
+    final path = Path()
+      ..moveTo(origin.dx, origin.dy)
+      ..quadraticBezierTo(
+        origin.dx + dir * len * 0.2,
+        origin.dy - len * 0.6,
+        tip.dx,
+        tip.dy,
+      )
+      ..quadraticBezierTo(
+        origin.dx + dir * len * 0.9,
+        origin.dy - len * 0.05,
+        origin.dx,
+        origin.dy,
+      )
+      ..close();
+    canvas.drawPath(path, paint);
+  }
+
+  /// A ring of petals with a lighter centre.
+  void _drawBloom(Canvas canvas, Offset center, double r) {
+    final petal = Paint()..color = theme.bloom;
+    const petals = 5;
+    for (var i = 0; i < petals; i++) {
+      final angle = (i / petals) * 2 * pi;
+      final c = Offset(
+        center.dx + cos(angle) * r * 0.7,
+        center.dy + sin(angle) * r * 0.7,
+      );
+      canvas.drawCircle(c, r * 0.55, petal);
+    }
+    canvas.drawCircle(center, r * 0.5, Paint()..color = theme.leaf);
   }
 
   void _drawOverflow(Canvas canvas, Size size, int hidden) {
