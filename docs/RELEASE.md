@@ -36,16 +36,26 @@ reused code. Bump the name when it's a user-visible release.
 
 ## Real AdMob ids
 
-Test ids are the defaults so we never risk a policy strike in development.
-For release, create an AdMob account → app → interstitial unit, then supply:
+The real ids for Skein (these are **not secret** — they ship inside the app):
 
-- **App id** → the `ADMOB_APP_ID` env var when running `tool/patch_android.py`
-  (or hard-code it in a committed manifest).
-- **Interstitial unit id** → a dart-define at build time:
-  ```sh
-  flutter build appbundle --release \
-    --dart-define=ADMOB_INTERSTITIAL_ID=ca-app-pub-XXXXX/ZZZZZ
-  ```
+- **App id:** `ca-app-pub-2526578065051760~7160117289`
+- **Interstitial unit id:** `ca-app-pub-2526578065051760/1072211921`
+
+Test ids are the code defaults, so debug builds always show Google's test ads.
+The real ids are wired into the CI release build and used for the signed
+release. To build a signed release locally:
+
+```sh
+flutter create --platforms=android --org com.pitchcode --project-name unwind .
+ADMOB_APP_ID=ca-app-pub-2526578065051760~7160117289 python3 tool/patch_android.py
+# ...add your signing config (below), then:
+flutter build appbundle --release \
+  --dart-define=ADMOB_INTERSTITIAL_ID=ca-app-pub-2526578065051760/1072211921
+```
+
+- **App id** goes into the manifest via the `ADMOB_APP_ID` env var read by
+  `tool/patch_android.py`.
+- **Interstitial unit id** goes in via the `--dart-define` at build time.
 
 ## Signing
 
