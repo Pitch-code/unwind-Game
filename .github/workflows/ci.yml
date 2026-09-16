@@ -42,6 +42,12 @@ jobs:
       # the manifest (AdMob) or sign a release, we'll commit the curated files.
       - run: flutter create --platforms=android --org com.pitchcode --project-name unwind .
 
+      - run: flutter pub get
+
+      # Generate every launcher density + the adaptive icon from the committed
+      # source PNGs (assets/icon/*, produced by tool/make_icon.py).
+      - run: dart run flutter_launcher_icons
+
       # Re-apply the AdMob customisations flutter create can't know about:
       # the AdMob app id in the manifest and minSdk 23 for google_mobile_ads.
       - name: Configure Android for AdMob

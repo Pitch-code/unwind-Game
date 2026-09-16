@@ -44,11 +44,14 @@ Everyone. (No violence or mature content; contains ads and one in-app purchase.)
 - Gentler early levels and a smoother difficulty curve.
 - Polished board — softer lighting, glowing tangles, a little bloom on solve.
 
-## Assets still needed
-- Launcher icon (adaptive) and 512×512 store icon.
-- Feature graphic (1024×500).
-- Phone screenshots (at least 2): a mid-untangle board and the garden screen.
-- Optional short promo video.
+## Assets
+- ✅ Launcher icon (adaptive) — generated into the app by CI from
+  `assets/icon/` (see `tool/make_icon.py`).
+- ✅ 512×512 store icon — `docs/store/icon-512.png`.
+- ✅ Feature graphic (1024×500) — `docs/store/feature-graphic.png`.
+- ◻ Phone screenshots (at least 2): a mid-untangle board and the garden
+  screen. Capture these on a device/emulator once installed.
+- ◻ Optional short promo video.
 
 ## Data safety notes
 - Ads via Google AdMob → uses the Advertising ID.
