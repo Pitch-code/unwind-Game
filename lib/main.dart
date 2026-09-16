@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 
 import 'game/game_screen.dart';
+import 'garden/garden_controller.dart';
+import 'garden/garden_screen.dart';
 import 'monetization/admob_gateway.dart';
 import 'monetization/billing.dart';
 
 Future<void> main() async {
-  // Required before touching platform channels (MobileAds, billing) ahead of
-  // the first frame.
+  // Required before touching platform channels (MobileAds, billing, prefs)
+  // ahead of the first frame.
   WidgetsFlutterBinding.ensureInitialized();
 
   final ads = AdMobGateway();
@@ -15,17 +17,28 @@ Future<void> main() async {
   final billing = Billing();
   await billing.init();
 
-  runApp(UnwindApp(ads: ads, billing: billing));
+  final garden = GardenController();
+  await garden.init();
+
+  runApp(UnwindApp(ads: ads, billing: billing, garden: garden));
 }
 
 class UnwindApp extends StatelessWidget {
-  const UnwindApp({super.key, required this.ads, required this.billing});
+  const UnwindApp({
+    super.key,
+    required this.ads,
+    required this.billing,
+    required this.garden,
+  });
 
   /// The app-lifetime ad gateway, initialised before the first frame.
   final AdMobGateway ads;
 
   /// Google Play Billing for the one-off "Remove Ads + themes" purchase.
   final Billing billing;
+
+  /// Persisted zen-garden progress and theme selection.
+  final GardenController garden;
 
   @override
   Widget build(BuildContext context) {
@@ -39,16 +52,24 @@ class UnwindApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
-      // Rebuild the game whenever the premium entitlement changes, so ads stop
-      // the instant the purchase (or a restore) completes.
-      home: ValueListenableBuilder<bool>(
-        valueListenable: billing.premium,
-        builder: (context, adsRemoved, _) {
+      // Rebuild when either premium (ads on/off, themes unlocked) or the garden
+      // (a level was solved) changes, so both stay in sync with no manual push.
+      home: ListenableBuilder(
+        listenable: Listenable.merge([billing.premium, garden]),
+        builder: (context, _) {
+          final adsRemoved = billing.premium.value;
           return GameScreen(
             ads: ads,
             adsRemoved: adsRemoved,
             onRemoveAds: adsRemoved ? null : billing.buyPremium,
             onRestore: billing.restore,
+            garden: garden.state,
+            onLevelSolved: garden.recordSolved,
+            onOpenGarden: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => GardenScreen(garden: garden, billing: billing),
+              ),
+            ),
           );
         },
       ),

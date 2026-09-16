@@ -70,5 +70,5 @@ coming undone, not a score or a timer.
 1. ✅ Puzzle core — generator, crossing maths, always-solvable (tested)
 2. ✅ Flame board — drag-to-untangle, live crossing highlight
 3. ✅ Installable debug APK built in CI
-4. ▶ Ads (every 2nd level) + one "Remove Ads + unlock themes" IAP
-5. ◻ The zen garden meta
+4. ✅ Ads (every 2nd level) + one "Remove Ads + unlock themes" IAP
+5. ✅ The zen garden meta — solving grows a plant; premium unlocks themes
