@@ -72,3 +72,7 @@ coming undone, not a score or a timer.
 3. ✅ Installable debug APK built in CI
 4. ✅ Ads (every 2nd level) + one "Remove Ads + unlock themes" IAP
 5. ✅ The zen garden meta — solving grows a plant; premium unlocks themes
+6. ✅ Polish + level-feel + release prep — displacement-based early levels,
+   solve pulse and softer board lighting, richer garden plants, configurable
+   AdMob ids (`--dart-define` / `ADMOB_APP_ID`), release .aab in CI, and a
+   release runbook (`docs/RELEASE.md`) + draft listing (`docs/store-listing.md`)
