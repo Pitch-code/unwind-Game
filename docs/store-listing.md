@@ -3,13 +3,16 @@
 Draft copy for the Google Play listing. Tweak before publishing.
 
 ## Title
-Unwind — Calm Untangle Puzzle
+Skein: Untangle & Grow
+
+_(Brand: **Skein**. Launcher label under the icon: "Skein".
+Package: `com.pitchcode.skein`.)_
 
 ## Short description (≤ 80 chars)
 A calm untangle puzzle. Drag the pins until no ropes cross, and grow a garden.
 
 ## Full description
-Unwind is a quiet puzzle about undoing knots. Each level hands you a tangle of
+Skein is a quiet puzzle about undoing knots. Each level hands you a tangle of
 pins joined by ropes. Drag the pins around until no rope crosses another and the
 board settles — that's it. No timer, no score, no pressure. Just the small,
 satisfying click of a knot coming undone.

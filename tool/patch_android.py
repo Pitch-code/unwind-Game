@@ -7,11 +7,12 @@ run. This script re-applies the two customisations google_mobile_ads needs,
 idempotently:
 
   1. The app's launcher display name.
-  2. The AdMob application id, as <meta-data> in AndroidManifest.xml.
+  2. The Play Store applicationId (com.pitchcode.skein).
+  3. The AdMob application id, as <meta-data> in AndroidManifest.xml.
      Defaults to Google's official *test* app id; a release build sets the
      ADMOB_APP_ID environment variable to override it.
-  3. minSdk 23 — google_mobile_ads 5.x refuses to build below it.
-  4. A pinned Gradle + AGP toolchain (see below).
+  4. minSdk 23 — google_mobile_ads 5.x refuses to build below it.
+  5. A pinned Gradle + AGP toolchain (see below).
 
 Run after `flutter create`, before `flutter build apk`.
 """
@@ -27,8 +28,14 @@ import sys
 TEST_ADMOB_APP_ID = "ca-app-pub-3940256099942544~3347511713"
 ADMOB_APP_ID = os.environ.get("ADMOB_APP_ID", TEST_ADMOB_APP_ID)
 
-# The app's display name under the launcher icon.
-APP_LABEL = "Unwind"
+# The app's display name under the launcher icon (short brand).
+APP_LABEL = "Skein"
+
+# The Play Store package / Android applicationId. Globally unique and permanent
+# once published. The internal Dart package stays "unwind"; only the Android
+# app identity is this. flutter create derives it from --org/--project-name, so
+# we override it here.
+APPLICATION_ID = "com.pitchcode.skein"
 
 MANIFEST = "android/app/src/main/AndroidManifest.xml"
 
@@ -90,6 +97,29 @@ def patch_min_sdk() -> None:
             print(f"No flutter.minSdkVersion reference in {path}; left as is.")
 
 
+def patch_application_id() -> None:
+    # Set the Play Store applicationId without touching the namespace (which
+    # matches the generated MainActivity's package). Handles Kotlin DSL
+    # (`applicationId = "..."`) and Groovy (`applicationId "..."`).
+    paths = glob.glob("android/app/build.gradle") + glob.glob(
+        "android/app/build.gradle.kts"
+    )
+    if not paths:
+        sys.exit("error: no android/app/build.gradle(.kts) found")
+
+    pattern = re.compile(r'(applicationId\s*=?\s*")[^"]*(")')
+    for path in paths:
+        with open(path, encoding="utf-8") as f:
+            s = f.read()
+        patched, n = pattern.subn(rf"\g<1>{APPLICATION_ID}\g<2>", s)
+        if n:
+            with open(path, "w", encoding="utf-8") as f:
+                f.write(patched)
+            print(f"Set applicationId -> {APPLICATION_ID} in {path}.")
+        else:
+            print(f"No applicationId declaration in {path}; left as is.")
+
+
 def patch_gradle_wrapper() -> None:
     path = "android/gradle/wrapper/gradle-wrapper.properties"
     with open(path, encoding="utf-8") as f:
@@ -135,6 +165,7 @@ def patch_agp_version() -> None:
 
 if __name__ == "__main__":
     patch_manifest()
+    patch_application_id()
     patch_min_sdk()
     patch_gradle_wrapper()
     patch_agp_version()
