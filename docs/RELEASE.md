@@ -1,4 +1,8 @@
-# Releasing Unwind to Google Play
+# Releasing Skein to Google Play
+
+_Store brand **Skein** (title "Skein: Untangle & Grow"), package
+`com.pitchcode.skein`. The internal Flutter/Dart project stays named `unwind`;
+`tool/patch_android.py` sets the Android applicationId + launcher label._
 
 A practical runbook. Nothing here is required to *develop* — debug builds run
 with Google's test ad units and no signing. This is only for shipping.
@@ -91,7 +95,9 @@ signing key.
 
 ## Play Console
 
-1. **Create the app** — name **Unwind**, package `com.pitchcode.unwind`.
+1. **Create the app** — name **Skein: Untangle & Grow**, package
+   `com.pitchcode.skein` (set for you by `tool/patch_android.py`; if you commit
+   `android/` durably, put `applicationId = "com.pitchcode.skein"` there).
 2. **Create the in-app product** — Monetize → Products → In-app products:
    - Product id: **`unwind_premium`** (must match the code exactly).
    - Type: one-time (managed) product. Price ~$3–5. **Activate** it.

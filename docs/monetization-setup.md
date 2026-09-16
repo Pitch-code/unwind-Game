@@ -24,11 +24,11 @@ Goal: come away with **two IDs** and send them to me.
 2. Left menu → **Apps** → **Add app**.
    - Platform: **Android**.
    - "Is the app listed on Google Play?" → **No** (not yet).
-   - Name it **Unwind** → Add.
+   - Name it **Skein** → Add.
 3. You now have an **App ID**. It looks like `ca-app-pub-1234567890123456~1234567890`
    (note the **`~`**). Copy it.
 4. With the app selected → **Ad units** → **Add ad unit** →
-   choose **Interstitial** → name it `Unwind Interstitial` → **Create**.
+   choose **Interstitial** → name it `Skein Interstitial` → **Create**.
 5. You now have an **ad unit ID**. It looks like
    `ca-app-pub-1234567890123456/9876543210` (note the **`/`**). Copy it.
 6. **Send me both IDs.** That's all — I plug them in at build time (they're
@@ -47,7 +47,8 @@ Goal: create the app and a product with the exact ID `unwind_premium`.
   done — reuse it.)
 
 ### B2. Create the app
-- **Create app** → name **Unwind**, pick language, **App or game: Game**,
+- **Create app** → name **Skein: Untangle & Grow**, pick language,
+  **App or game: Game**,
   **Free**, tick the declarations → Create.
 
 ### B3. Create the upgrade product
