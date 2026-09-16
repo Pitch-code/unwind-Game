@@ -1,6 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:unwind/game/model/crossings.dart';
-import 'package:unwind/game/model/level.dart';
 import 'package:unwind/game/model/level_generator.dart';
 
 void main() {
