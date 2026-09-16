@@ -69,6 +69,17 @@ jobs:
           path: build/app/outputs/flutter-apk/app-debug.apk
           if-no-files-found: error
 
+      # A smaller, installable release APK for sideloading onto a phone. It
+      # passes NO ADMOB_INTERSTITIAL_ID, so it shows Google TEST ads (safe to
+      # tap). Debug-signed via the Flutter template, so it installs directly.
+      - run: flutter build apk --release
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: skein-release-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error
+
       # Verify the release path bundles too, wired with the REAL interstitial
       # unit. Flutter's template points the release build at the debug signing
       # config, so this produces a debug-signed .aab — enough to prove the real
