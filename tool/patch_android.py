@@ -14,12 +14,20 @@ Run after `flutter create`, before `flutter build apk`.
 """
 
 import glob
+import re
 import sys
 
 # Google's official Android **test** AdMob application id.
 ADMOB_APP_ID = "ca-app-pub-3940256099942544~3347511713"
 
 MANIFEST = "android/app/src/main/AndroidManifest.xml"
+
+# `flutter create` on the floating `stable` channel now provisions Gradle 9,
+# but google_mobile_ads' Android build script still uses the eager
+# `configurations.all` API that Gradle 9 removed, so the build fails. Pin the
+# whole Android toolchain to a known-good pair that builds the plugin cleanly.
+GRADLE_VERSION = "8.12"
+AGP_VERSION = "8.7.3"
 
 
 def patch_manifest() -> None:
@@ -65,6 +73,51 @@ def patch_min_sdk() -> None:
             print(f"No flutter.minSdkVersion reference in {path}; left as is.")
 
 
+def patch_gradle_wrapper() -> None:
+    path = "android/gradle/wrapper/gradle-wrapper.properties"
+    with open(path, encoding="utf-8") as f:
+        props = f.read()
+    patched = re.sub(
+        r"gradle-[0-9]+(?:\.[0-9]+)+-(all|bin)\.zip",
+        f"gradle-{GRADLE_VERSION}-\\1.zip",
+        props,
+    )
+    if patched != props:
+        with open(path, "w", encoding="utf-8") as f:
+            f.write(patched)
+        print(f"Pinned Gradle -> {GRADLE_VERSION} in {path}.")
+    else:
+        print(f"No distributionUrl match in {path}; left as is.")
+
+
+def patch_agp_version() -> None:
+    # Recent Flutter declares the Android Gradle Plugin version in
+    # settings.gradle(.kts) via a plugins {} block.
+    paths = glob.glob("android/settings.gradle") + glob.glob(
+        "android/settings.gradle.kts"
+    )
+    if not paths:
+        sys.exit("error: no android/settings.gradle(.kts) found")
+
+    pattern = re.compile(
+        r'(id\s*\(?\s*["\']com\.android\.application["\']\s*\)?\s+version\s+["\'])'
+        r'[^"\']+'
+        r'(["\'])'
+    )
+    for path in paths:
+        with open(path, encoding="utf-8") as f:
+            s = f.read()
+        patched, n = pattern.subn(rf"\g<1>{AGP_VERSION}\g<2>", s)
+        if n:
+            with open(path, "w", encoding="utf-8") as f:
+                f.write(patched)
+            print(f"Pinned AGP -> {AGP_VERSION} in {path}.")
+        else:
+            print(f"No AGP version declaration in {path}; left as is.")
+
+
 if __name__ == "__main__":
     patch_manifest()
     patch_min_sdk()
+    patch_gradle_wrapper()
+    patch_agp_version()
