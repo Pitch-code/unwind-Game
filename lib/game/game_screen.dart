@@ -17,6 +17,8 @@ class GameScreen extends StatefulWidget {
     super.key,
     this.ads = const NoAdsGateway(),
     this.adsRemoved = false,
+    this.onRemoveAds,
+    this.onRestore,
   });
 
   /// How ads are shown. Defaults to a no-op; slice 4b injects the AdMob one.
@@ -24,6 +26,12 @@ class GameScreen extends StatefulWidget {
 
   /// Whether the player has bought "Remove Ads". Wired to the purchase in 4b.
   final bool adsRemoved;
+
+  /// Starts the "Remove Ads + unlock themes" purchase. Null when already owned.
+  final Future<void> Function()? onRemoveAds;
+
+  /// Restores a previously bought entitlement. Null hides the restore action.
+  final Future<void> Function()? onRestore;
 
   @override
   State<GameScreen> createState() => _GameScreenState();
@@ -108,6 +116,26 @@ class _GameScreenState extends State<GameScreen> {
                 ],
               ),
             ),
+            if (widget.onRemoveAds != null)
+              Positioned(
+                bottom: 10,
+                left: 20,
+                right: 20,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    TextButton(
+                      onPressed: () => widget.onRemoveAds?.call(),
+                      child: const Text('Remove ads'),
+                    ),
+                    if (widget.onRestore != null)
+                      TextButton(
+                        onPressed: () => widget.onRestore?.call(),
+                        child: const Text('Restore'),
+                      ),
+                  ],
+                ),
+              ),
             if (_solved) _SolvedPanel(level: _level, onNext: _next),
           ],
         ),
