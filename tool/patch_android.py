@@ -27,7 +27,7 @@ MANIFEST = "android/app/src/main/AndroidManifest.xml"
 # `configurations.all` API that Gradle 9 removed, so the build fails. Pin the
 # whole Android toolchain to a known-good pair that builds the plugin cleanly.
 GRADLE_VERSION = "8.14.3"
-AGP_VERSION = "8.7.3"
+AGP_VERSION = "8.11.1"
 
 
 def patch_manifest() -> None:
