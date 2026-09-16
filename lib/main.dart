@@ -1,11 +1,23 @@
 import 'package:flutter/material.dart';
 
 import 'game/game_screen.dart';
+import 'monetization/admob_gateway.dart';
 
-void main() => runApp(const UnwindApp());
+Future<void> main() async {
+  // Required before touching platform channels (MobileAds) ahead of runApp.
+  WidgetsFlutterBinding.ensureInitialized();
+
+  final ads = AdMobGateway();
+  await ads.ensureInitialized();
+
+  runApp(UnwindApp(ads: ads));
+}
 
 class UnwindApp extends StatelessWidget {
-  const UnwindApp({super.key});
+  const UnwindApp({super.key, required this.ads});
+
+  /// The app-lifetime ad gateway, initialised before the first frame.
+  final AdMobGateway ads;
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +31,7 @@ class UnwindApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
-      home: const GameScreen(),
+      home: GameScreen(ads: ads),
     );
   }
 }
