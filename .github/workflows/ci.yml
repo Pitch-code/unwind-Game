@@ -16,11 +16,36 @@ jobs:
 
       - run: flutter --version
 
-      # pub get resolves dependencies (needs network — GitHub runners have it).
+      # Resolves dependencies (needs network — GitHub runners have it).
       - run: flutter pub get
 
       # Fails the build on any analyzer issue, including lints.
       - run: flutter analyze
 
-      # Runs the pure-Dart puzzle tests: crossing maths and the level generator.
+      # Runs the pure-Dart puzzle tests: crossing maths, generator, transform.
       - run: flutter test
+
+  apk:
+    # Only build the app if it compiles clean and the logic passes.
+    needs: verify
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      # We don't commit the Android project (it includes a binary Gradle
+      # wrapper that can't be authored by hand). Flutter regenerates it here
+      # from pubspec + lib, without touching either. When we need to customise
+      # the manifest (AdMob) or sign a release, we'll commit the curated files.
+      - run: flutter create --platforms=android --org com.pitchcode --project-name unwind .
+
+      - run: flutter build apk --debug
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: unwind-debug-apk
+          path: build/app/outputs/flutter-apk/app-debug.apk
+          if-no-files-found: error
