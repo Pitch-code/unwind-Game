@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 
+import 'game/game_screen.dart';
+
 void main() => runApp(const UnwindApp());
 
-/// Placeholder shell. The Flame game board and the garden meta land in the
-/// next slices; this exists so the project is a coherent, analyzable app while
-/// the puzzle core is proven out under test.
 class UnwindApp extends StatelessWidget {
   const UnwindApp({super.key});
 
@@ -20,11 +19,7 @@ class UnwindApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
-      home: const Scaffold(
-        body: Center(
-          child: Text('Unwind'),
-        ),
-      ),
+      home: const GameScreen(),
     );
   }
 }

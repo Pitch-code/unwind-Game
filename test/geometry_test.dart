@@ -82,4 +82,28 @@ void main() {
       expect(isSolved(nodes, edges), isTrue);
     });
   });
+
+  group('crossingEdgeIndices', () {
+    test('flags both ropes that form an X', () {
+      final nodes = [
+        const Vec2(0, 0),
+        const Vec2(1, 1),
+        const Vec2(0, 1),
+        const Vec2(1, 0),
+      ];
+      final edges = [Edge(0, 1), Edge(2, 3)];
+      expect(crossingEdgeIndices(nodes, edges), {0, 1});
+    });
+
+    test('is empty when nothing crosses', () {
+      final nodes = [
+        const Vec2(0, 0),
+        const Vec2(1, 0),
+        const Vec2(0, 1),
+        const Vec2(1, 1),
+      ];
+      final edges = [Edge(0, 1), Edge(2, 3)];
+      expect(crossingEdgeIndices(nodes, edges), isEmpty);
+    });
+  });
 }
